@@ -6,9 +6,9 @@
 typedef struct {
   const Subtree *subtree;
   Length position;
-  uint32_t child_index;
-  uint32_t structural_child_index;
-  uint32_t descendant_index;
+  uint64_t child_index;
+  uint64_t structural_child_index;
+  uint64_t descendant_index;
 } TreeCursorEntry;
 
 typedef struct {

@@ -40,7 +40,7 @@ TSNode ts_tree_root_node(const TSTree *self) {
 
 TSNode ts_tree_root_node_with_offset(
   const TSTree *self,
-  uint32_t offset_bytes,
+  uint64_t offset_bytes,
   TSPoint offset_extent
 ) {
   Length offset = {offset_bytes, offset_extent};
@@ -55,14 +55,14 @@ void ts_tree_edit(TSTree *self, const TSInputEdit *edit) {
   for (unsigned i = 0; i < self->included_range_count; i++) {
     TSRange *range = &self->included_ranges[i];
     if (range->end_byte >= edit->old_end_byte) {
-      if (range->end_byte != UINT32_MAX) {
+      if (range->end_byte != UINT64_MAX) {
         range->end_byte = edit->new_end_byte + (range->end_byte - edit->old_end_byte);
         range->end_point = point_add(
           edit->new_end_point,
           point_sub(range->end_point, edit->old_end_point)
         );
         if (range->end_byte < edit->new_end_byte) {
-          range->end_byte = UINT32_MAX;
+          range->end_byte = UINT64_MAX;
           range->end_point = POINT_MAX;
         }
       }
@@ -77,7 +77,7 @@ void ts_tree_edit(TSTree *self, const TSInputEdit *edit) {
         point_sub(range->start_point, edit->old_end_point)
       );
       if (range->start_byte < edit->new_end_byte) {
-        range->start_byte = UINT32_MAX;
+        range->start_byte = UINT64_MAX;
         range->start_point = POINT_MAX;
       }
     } else if (range->start_byte > edit->start_byte) {
@@ -91,14 +91,14 @@ void ts_tree_edit(TSTree *self, const TSInputEdit *edit) {
   ts_subtree_pool_delete(&pool);
 }
 
-TSRange *ts_tree_included_ranges(const TSTree *self, uint32_t *length) {
+TSRange *ts_tree_included_ranges(const TSTree *self, uint64_t *length) {
   *length = self->included_range_count;
   TSRange *ranges = ts_calloc(self->included_range_count, sizeof(TSRange));
   memcpy(ranges, self->included_ranges, self->included_range_count * sizeof(TSRange));
   return ranges;
 }
 
-TSRange *ts_tree_get_changed_ranges(const TSTree *old_tree, const TSTree *new_tree, uint32_t *length) {
+TSRange *ts_tree_get_changed_ranges(const TSTree *old_tree, const TSTree *new_tree, uint64_t *length) {
   TreeCursor cursor1 = {NULL, array_new()};
   TreeCursor cursor2 = {NULL, array_new()};
   ts_tree_cursor_init(&cursor1, ts_tree_root_node(old_tree));

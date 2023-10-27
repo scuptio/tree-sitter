@@ -9,7 +9,7 @@ enum {
 typedef struct {
   int32_t open_delimiter;
   int32_t close_delimiter;
-  uint32_t depth;
+  uint64_t depth;
 } Scanner;
 
 void *tree_sitter_external_tokens_external_scanner_create() {

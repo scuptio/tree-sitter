@@ -501,7 +501,7 @@ fn test_highlighting_via_c_api() {
         c::ts_highlighter_new(
             &highlight_names[0] as *const *const c_char,
             &highlight_attrs[0] as *const *const c_char,
-            highlights.len() as u32,
+            highlights.len() as u64,
         )
     };
 
@@ -525,9 +525,9 @@ fn test_highlighting_via_c_api() {
             highlights_query.as_ptr() as *const c_char,
             injections_query.as_ptr() as *const c_char,
             locals_query.as_ptr() as *const c_char,
-            highlights_query.len() as u32,
-            injections_query.len() as u32,
-            locals_query.len() as u32,
+            highlights_query.len() as u64,
+            injections_query.len() as u64,
+            locals_query.len() as u64,
             false,
         );
     }
@@ -549,8 +549,8 @@ fn test_highlighting_via_c_api() {
             highlights_query.as_ptr() as *const c_char,
             injections_query.as_ptr() as *const c_char,
             ptr::null(),
-            highlights_query.len() as u32,
-            injections_query.len() as u32,
+            highlights_query.len() as u64,
+            injections_query.len() as u64,
             0,
             false,
         );
@@ -563,7 +563,7 @@ fn test_highlighting_via_c_api() {
             highlighter,
             html_scope.as_ptr(),
             source_code.as_ptr(),
-            source_code.as_bytes().len() as u32,
+            source_code.as_bytes().len() as u64,
             buffer,
             ptr::null_mut(),
         );
@@ -606,7 +606,7 @@ fn test_highlighting_via_c_api() {
 
 #[test]
 fn test_highlighting_with_all_captures_applied() {
-    let source = "fn main(a: u32, b: u32) -> { let c = a + b; }";
+    let source = "fn main(a: u64, b: u64) -> { let c = a + b; }";
     let language = get_language("rust");
     let highlights_query = indoc::indoc! {"
         [
@@ -635,12 +635,12 @@ fn test_highlighting_with_all_captures_applied() {
             ("a", vec!["variable.parameter"]),
             (":", vec!["punctuation.delimiter"]),
             (" ", vec![]),
-            ("u32", vec!["type.builtin"]),
+            ("u64", vec!["type.builtin"]),
             (", ", vec![]),
             ("b", vec!["variable.parameter"]),
             (":", vec!["punctuation.delimiter"]),
             (" ", vec![]),
-            ("u32", vec!["type.builtin"]),
+            ("u64", vec!["type.builtin"]),
             (")", vec!["punctuation.bracket"]),
             (" ", vec![]),
             ("->", vec!["punctuation.delimiter"]),

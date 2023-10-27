@@ -15,8 +15,8 @@ extern "C" {
 #define Array(T)       \
   struct {             \
     T *contents;       \
-    uint32_t size;     \
-    uint32_t capacity; \
+    uint64_t size;     \
+    uint64_t capacity; \
   }
 
 #define array_init(self) \
@@ -26,7 +26,7 @@ extern "C" {
   { NULL, 0, 0 }
 
 #define array_get(self, _index) \
-  (assert((uint32_t)(_index) < (self)->size), &(self)->contents[_index])
+  (assert((uint64_t)(_index) < (self)->size), &(self)->contents[_index])
 
 #define array_front(self) array_get(self, 0)
 
@@ -141,7 +141,7 @@ static inline void array__delete(VoidArray *self) {
 }
 
 static inline void array__erase(VoidArray *self, size_t element_size,
-                                uint32_t index) {
+                                uint64_t index) {
   assert(index < self->size);
   char *contents = (char *)self->contents;
   memmove(contents + index * element_size, contents + (index + 1) * element_size,
@@ -149,7 +149,7 @@ static inline void array__erase(VoidArray *self, size_t element_size,
   self->size--;
 }
 
-static inline void array__reserve(VoidArray *self, size_t element_size, uint32_t new_capacity) {
+static inline void array__reserve(VoidArray *self, size_t element_size, uint64_t new_capacity) {
   if (new_capacity > self->capacity) {
     if (self->contents) {
       self->contents = ts_realloc(self->contents, new_capacity * element_size);
@@ -172,10 +172,10 @@ static inline void array__swap(VoidArray *self, VoidArray *other) {
   *self = swap;
 }
 
-static inline void array__grow(VoidArray *self, uint32_t count, size_t element_size) {
-  uint32_t new_size = self->size + count;
+static inline void array__grow(VoidArray *self, uint64_t count, size_t element_size) {
+  uint64_t new_size = self->size + count;
   if (new_size > self->capacity) {
-    uint32_t new_capacity = self->capacity * 2;
+    uint64_t new_capacity = self->capacity * 2;
     if (new_capacity < 8) new_capacity = 8;
     if (new_capacity < new_size) new_capacity = new_size;
     array__reserve(self, element_size, new_capacity);
@@ -183,11 +183,11 @@ static inline void array__grow(VoidArray *self, uint32_t count, size_t element_s
 }
 
 static inline void array__splice(VoidArray *self, size_t element_size,
-                                 uint32_t index, uint32_t old_count,
-                                 uint32_t new_count, const void *elements) {
-  uint32_t new_size = self->size + new_count - old_count;
-  uint32_t old_end = index + old_count;
-  uint32_t new_end = index + new_count;
+                                 uint64_t index, uint64_t old_count,
+                                 uint64_t new_count, const void *elements) {
+  uint64_t new_size = self->size + new_count - old_count;
+  uint64_t old_end = index + old_count;
+  uint64_t new_end = index + new_count;
   assert(old_end <= self->size);
 
   array__reserve(self, element_size, new_size);
@@ -223,12 +223,12 @@ static inline void array__splice(VoidArray *self, size_t element_size,
   do { \
     *(_index) = start; \
     *(_exists) = false; \
-    uint32_t size = (self)->size - *(_index); \
+    uint64_t size = (self)->size - *(_index); \
     if (size == 0) break; \
     int comparison; \
     while (size > 1) { \
-      uint32_t half_size = size / 2; \
-      uint32_t mid_index = *(_index) + half_size; \
+      uint64_t half_size = size / 2; \
+      uint64_t mid_index = *(_index) + half_size; \
       comparison = compare(&((self)->contents[mid_index] suffix), (needle)); \
       if (comparison <= 0) *(_index) = mid_index; \
       size -= half_size; \

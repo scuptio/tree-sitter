@@ -18,7 +18,7 @@ void ts_range_array_get_changed_ranges(
 
 bool ts_range_array_intersects(
   const TSRangeArray *self, unsigned start_index,
-  uint32_t start_byte, uint32_t end_byte
+  uint64_t start_byte, uint64_t end_byte
 );
 
 unsigned ts_subtree_get_changed_ranges(

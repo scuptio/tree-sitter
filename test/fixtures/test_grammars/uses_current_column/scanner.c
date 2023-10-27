@@ -79,7 +79,7 @@ bool tree_sitter_uses_current_column_external_scanner_scan(
     while (iswspace(lexer->lookahead)) {
       lexer->advance(lexer, false);
     }
-    uint32_t column = lexer->get_column(lexer);
+    uint64_t column = lexer->get_column(lexer);
     if (column > self->indents[self->indent_count - 1]) {
       self->indents[self->indent_count++] = column - 2;
       lexer->result_symbol = INDENT;
@@ -99,7 +99,7 @@ bool tree_sitter_uses_current_column_external_scanner_scan(
     if (lexer->lookahead == '\n') {
       lexer->advance(lexer, false);
 
-      uint32_t next_column = 0;
+      uint64_t next_column = 0;
       for (;;) {
         if (lexer->lookahead == ' ') {
           next_column++;

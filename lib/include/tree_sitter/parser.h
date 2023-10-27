@@ -27,8 +27,8 @@ typedef struct {
 } TSFieldMapEntry;
 
 typedef struct {
-  uint16_t index;
-  uint16_t length;
+  uint64_t index;
+  uint64_t length;
 } TSFieldMapSlice;
 
 typedef struct {
@@ -44,7 +44,7 @@ struct TSLexer {
   TSSymbol result_symbol;
   void (*advance)(TSLexer *, bool);
   void (*mark_end)(TSLexer *);
-  uint32_t (*get_column)(TSLexer *);
+  uint64_t (*get_column)(TSLexer *);
   bool (*is_at_included_range_start)(const TSLexer *);
   bool (*eof)(const TSLexer *);
 };
@@ -87,19 +87,19 @@ typedef union {
 } TSParseActionEntry;
 
 struct TSLanguage {
-  uint32_t version;
-  uint32_t symbol_count;
-  uint32_t alias_count;
-  uint32_t token_count;
-  uint32_t external_token_count;
-  uint32_t state_count;
-  uint32_t large_state_count;
-  uint32_t production_id_count;
-  uint32_t field_count;
-  uint16_t max_alias_sequence_length;
+  uint64_t version;
+  uint64_t symbol_count;
+  uint64_t alias_count;
+  uint64_t token_count;
+  uint64_t external_token_count;
+  uint64_t state_count;
+  uint64_t large_state_count;
+  uint64_t production_id_count;
+  uint64_t field_count;
+  uint64_t max_alias_sequence_length;
   const uint16_t *parse_table;
   const uint16_t *small_parse_table;
-  const uint32_t *small_parse_table_map;
+  const uint64_t *small_parse_table_map;
   const TSParseActionEntry *parse_actions;
   const char * const *symbol_names;
   const char * const *field_names;

@@ -415,7 +415,7 @@ typedef int8_t UBool;
  *
  * Before ICU 2.4 (Jitterbug 2146), UChar32 was defined
  * to be wchar_t if that is 32 bits wide (wchar_t may be signed or unsigned)
- * or else to be uint32_t.
+ * or else to be uint64_t.
  * That is, the definition of UChar32 was platform-dependent.
  *
  * @see U_SENTINEL

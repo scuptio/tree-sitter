@@ -113,12 +113,12 @@ pub struct HighlightConfiguration {
     highlights_pattern_index: usize,
     highlight_indices: Vec<Option<Highlight>>,
     non_local_variable_patterns: Vec<bool>,
-    injection_content_capture_index: Option<u32>,
-    injection_language_capture_index: Option<u32>,
-    local_scope_capture_index: Option<u32>,
-    local_def_capture_index: Option<u32>,
-    local_def_value_capture_index: Option<u32>,
-    local_ref_capture_index: Option<u32>,
+    injection_content_capture_index: Option<u64>,
+    injection_language_capture_index: Option<u64>,
+    local_scope_capture_index: Option<u64>,
+    local_def_capture_index: Option<u64>,
+    local_def_value_capture_index: Option<u64>,
+    local_ref_capture_index: Option<u64>,
 }
 
 /// Performs syntax highlighting, recognizing a given list of highlight names.
@@ -134,7 +134,7 @@ pub struct Highlighter {
 /// Converts a general-purpose syntax highlighting iterator into a sequence of lines of HTML.
 pub struct HtmlRenderer {
     pub html: Vec<u8>,
-    pub line_offsets: Vec<u32>,
+    pub line_offsets: Vec<u64>,
     carriage_return_highlight: Option<Highlight>,
 }
 
@@ -320,7 +320,7 @@ impl HighlightConfiguration {
         let mut local_ref_capture_index = None;
         let mut local_scope_capture_index = None;
         for (i, name) in query.capture_names().iter().enumerate() {
-            let i = Some(i as u32);
+            let i = Some(i as u64);
             match *name {
                 "injection.content" => injection_content_capture_index = i,
                 "injection.language" => injection_language_capture_index = i,
@@ -1043,7 +1043,7 @@ impl HtmlRenderer {
         if self.html.last() != Some(&b'\n') {
             self.html.push(b'\n');
         }
-        if self.line_offsets.last() == Some(&(self.html.len() as u32)) {
+        if self.line_offsets.last() == Some(&(self.html.len() as u64)) {
             self.line_offsets.pop();
         }
         Ok(())
@@ -1118,7 +1118,7 @@ impl HtmlRenderer {
             if c == b'\n' {
                 highlights.iter().for_each(|_| self.end_highlight());
                 self.html.push(c);
-                self.line_offsets.push(self.html.len() as u32);
+                self.line_offsets.push(self.html.len() as u64);
                 highlights
                     .iter()
                     .for_each(|scope| self.start_highlight(*scope, attribute_callback));

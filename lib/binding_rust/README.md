@@ -56,7 +56,7 @@ Once you have a syntax tree, you can update it when your source code changes.
 Passing in the previous edited tree makes `parse` run much more quickly:
 
 ```rust
-let new_source_code = "fn test(a: u32) {}"
+let new_source_code = "fn test(a: u64) {}"
 
 tree.edit(InputEdit {
   start_byte: 8,
@@ -85,7 +85,7 @@ let lines = &[
 
 // Parse the source code using a custom callback. The callback is called
 // with both a byte offset and a row/column offset.
-let tree = parser.parse_with(&mut |_byte: u32, position: Point| -> &[u8] {
+let tree = parser.parse_with(&mut |_byte: u64, position: Point| -> &[u8] {
     let row = position.row as usize;
     let column = position.column as usize;
     if row < lines.len() {

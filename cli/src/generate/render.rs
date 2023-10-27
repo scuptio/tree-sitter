@@ -885,7 +885,7 @@ impl Generator {
                     }
                     add!(self, "lookahead == ");
                     self.add_character(range.start);
-                } else if range.end as u32 == range.start as u32 + 1 {
+                } else if range.end as u64 == range.start as u64 + 1 {
                     if range.start == '\0' {
                         add!(self, "!eof && ");
                     }
@@ -910,7 +910,7 @@ impl Generator {
                 if range.end == range.start {
                     add!(self, "lookahead != ");
                     self.add_character(range.start);
-                } else if range.end as u32 == range.start as u32 + 1 {
+                } else if range.end as u64 == range.start as u64 + 1 {
                     add!(self, "lookahead != ");
                     self.add_character(range.start);
                     add!(self, " &&{}lookahead != ", line_break);
@@ -1243,7 +1243,7 @@ impl Generator {
 
             add_line!(
                 self,
-                "static const uint32_t ts_small_parse_table_map[] = {{"
+                "static const uint64_t ts_small_parse_table_map[] = {{"
             );
             indent!(self);
             for i in self.large_state_count..self.parse_table.states.len() {
@@ -1607,11 +1607,11 @@ impl Generator {
                         '\u{007F}' => "DEL",
                         '\u{FEFF}' => "BOM",
                         '\u{0080}'..='\u{FFFF}' => {
-                            result.push_str(&format!("u{:04x}", c as u32));
+                            result.push_str(&format!("u{:04x}", c as u64));
                             break 'special_chars;
                         }
                         '\u{10000}'..='\u{10FFFF}' => {
-                            result.push_str(&format!("U{:08x}", c as u32));
+                            result.push_str(&format!("U{:08x}", c as u64));
                             break 'special_chars;
                         }
                         '0'..='9' | 'a'..='z' | 'A'..='Z' | '_' => unreachable!(),
@@ -1642,10 +1642,10 @@ impl Generator {
                 '\r' => result += "\\r",
                 '\t' => result += "\\t",
                 '\0' => result += "\\0",
-                '\u{0001}'..='\u{001f}' => result += &format!("\\x{:02x}", c as u32),
-                '\u{007F}'..='\u{FFFF}' => result += &format!("\\u{:04x}", c as u32),
+                '\u{0001}'..='\u{001f}' => result += &format!("\\x{:02x}", c as u64),
+                '\u{007F}'..='\u{FFFF}' => result += &format!("\\u{:04x}", c as u64),
                 '\u{10000}'..='\u{10FFFF}' => {
-                    result.push_str(&format!("\\U{:08x}", c as u32));
+                    result.push_str(&format!("\\U{:08x}", c as u64));
                 }
                 _ => result.push(c),
             }
@@ -1665,7 +1665,7 @@ impl Generator {
                 if c == ' ' || c.is_ascii_graphic() {
                     add!(self, "'{}'", c)
                 } else {
-                    add!(self, "{}", c as u32)
+                    add!(self, "{}", c as u64)
                 }
             }
         }

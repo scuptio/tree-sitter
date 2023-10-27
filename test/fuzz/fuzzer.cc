@@ -18,7 +18,7 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv) {
     assert(f.good());
     std::string lang_query_source((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
 
-    uint32_t error_offset = 0;
+    uint64_t error_offset = 0;
     TSQueryError error_type = TSQueryErrorNone;
 
     lang_query = ts_query_new(
@@ -64,7 +64,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
       ts_query_cursor_exec(cursor, lang_query, root_node);
       TSQueryMatch match;
-      uint32_t capture_index;
+      uint64_t capture_index;
       while (ts_query_cursor_next_capture(cursor, &match, &capture_index)) {
       }
 

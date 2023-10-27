@@ -137,7 +137,7 @@
  * @return 1 or 2
  * @stable ICU 2.4
  */
-#define U16_LENGTH(c) ((uint32_t)(c)<=0xffff ? 1 : 2)
+#define U16_LENGTH(c) ((uint64_t)(c)<=0xffff ? 1 : 2)
 
 /**
  * The maximum number of 16-bit code units per Unicode code point (U+0000..U+10ffff).
@@ -364,7 +364,7 @@
  * @stable ICU 2.4
  */
 #define U16_APPEND_UNSAFE(s, i, c) UPRV_BLOCK_MACRO_BEGIN { \
-    if((uint32_t)(c)<=0xffff) { \
+    if((uint64_t)(c)<=0xffff) { \
         (s)[(i)++]=(uint16_t)(c); \
     } else { \
         (s)[(i)++]=(uint16_t)(((c)>>10)+0xd7c0); \
@@ -390,9 +390,9 @@
  * @stable ICU 2.4
  */
 #define U16_APPEND(s, i, capacity, c, isError) UPRV_BLOCK_MACRO_BEGIN { \
-    if((uint32_t)(c)<=0xffff) { \
+    if((uint64_t)(c)<=0xffff) { \
         (s)[(i)++]=(uint16_t)(c); \
-    } else if((uint32_t)(c)<=0x10ffff && (i)+1<(capacity)) { \
+    } else if((uint64_t)(c)<=0x10ffff && (i)+1<(capacity)) { \
         (s)[(i)++]=(uint16_t)(((c)>>10)+0xd7c0); \
         (s)[(i)++]=(uint16_t)(((c)&0x3ff)|0xdc00); \
     } else /* c>0x10ffff or not enough space */ { \

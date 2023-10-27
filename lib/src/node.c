@@ -7,8 +7,8 @@ typedef struct {
   Subtree parent;
   const TSTree *tree;
   Length position;
-  uint32_t child_index;
-  uint32_t structural_child_index;
+  uint64_t child_index;
+  uint64_t structural_child_index;
   const TSSymbol *alias_sequence;
 } NodeChildIterator;
 
@@ -33,7 +33,7 @@ static inline TSNode ts_node__null(void) {
 
 // TSNode - accessors
 
-uint32_t ts_node_start_byte(TSNode self) {
+uint64_t ts_node_start_byte(TSNode self) {
   return self.context[0];
 }
 
@@ -41,7 +41,7 @@ TSPoint ts_node_start_point(TSNode self) {
   return (TSPoint) {self.context[1], self.context[2]};
 }
 
-static inline uint32_t ts_node__alias(const TSNode *self) {
+static inline uint64_t ts_node__alias(const TSNode *self) {
   return self->context[3];
 }
 
@@ -117,7 +117,7 @@ static inline bool ts_node__is_relevant(TSNode self, bool include_anonymous) {
   }
 }
 
-static inline uint32_t ts_node__relevant_child_count(
+static inline uint64_t ts_node__relevant_child_count(
   TSNode self,
   bool include_anonymous
 ) {
@@ -135,7 +135,7 @@ static inline uint32_t ts_node__relevant_child_count(
 
 static inline TSNode ts_node__child(
   TSNode self,
-  uint32_t child_index,
+  uint64_t child_index,
   bool include_anonymous
 ) {
   TSNode result = self;
@@ -145,7 +145,7 @@ static inline TSNode ts_node__child(
     did_descend = false;
 
     TSNode child;
-    uint32_t index = 0;
+    uint64_t index = 0;
     NodeChildIterator iterator = ts_node_iterate_children(&result);
     while (ts_node_child_iterator_next(&iterator, &child)) {
       if (ts_node__is_relevant(child, include_anonymous)) {
@@ -154,8 +154,8 @@ static inline TSNode ts_node__child(
         }
         index++;
       } else {
-        uint32_t grandchild_index = child_index - index;
-        uint32_t grandchild_count = ts_node__relevant_child_count(child, include_anonymous);
+        uint64_t grandchild_index = child_index - index;
+        uint64_t grandchild_count = ts_node__relevant_child_count(child, include_anonymous);
         if (grandchild_index < grandchild_count) {
           did_descend = true;
           result = child;
@@ -187,7 +187,7 @@ static bool ts_subtree_has_trailing_empty_descendant(
 static inline TSNode ts_node__prev_sibling(TSNode self, bool include_anonymous) {
   Subtree self_subtree = ts_node__subtree(self);
   bool self_is_empty = ts_subtree_total_bytes(self_subtree) == 0;
-  uint32_t target_end_byte = ts_node_end_byte(self);
+  uint64_t target_end_byte = ts_node_end_byte(self);
 
   TSNode node = ts_node_parent(self);
   TSNode earlier_node = ts_node__null();
@@ -246,7 +246,7 @@ static inline TSNode ts_node__prev_sibling(TSNode self, bool include_anonymous) 
 }
 
 static inline TSNode ts_node__next_sibling(TSNode self, bool include_anonymous) {
-  uint32_t target_end_byte = ts_node_end_byte(self);
+  uint64_t target_end_byte = ts_node_end_byte(self);
 
   TSNode node = ts_node_parent(self);
   TSNode later_node = ts_node__null();
@@ -298,7 +298,7 @@ static inline TSNode ts_node__next_sibling(TSNode self, bool include_anonymous) 
 
 static inline TSNode ts_node__first_child_for_byte(
   TSNode self,
-  uint32_t goal,
+  uint64_t goal,
   bool include_anonymous
 ) {
   TSNode node = self;
@@ -327,8 +327,8 @@ static inline TSNode ts_node__first_child_for_byte(
 
 static inline TSNode ts_node__descendant_for_byte_range(
   TSNode self,
-  uint32_t range_start,
-  uint32_t range_end,
+  uint64_t range_start,
+  uint64_t range_end,
   bool include_anonymous
 ) {
   TSNode node = self;
@@ -341,7 +341,7 @@ static inline TSNode ts_node__descendant_for_byte_range(
     TSNode child;
     NodeChildIterator iterator = ts_node_iterate_children(&node);
     while (ts_node_child_iterator_next(&iterator, &child)) {
-      uint32_t node_end = iterator.position.bytes;
+      uint64_t node_end = iterator.position.bytes;
 
       // The end of this node must extend far enough forward to touch
       // the end of the range and exceed the start of the range.
@@ -405,7 +405,7 @@ static inline TSNode ts_node__descendant_for_point_range(
 
 // TSNode - public
 
-uint32_t ts_node_end_byte(TSNode self) {
+uint64_t ts_node_end_byte(TSNode self) {
   return ts_node_start_byte(self) + ts_subtree_size(ts_node__subtree(self)).bytes;
 }
 
@@ -478,7 +478,7 @@ bool ts_node_is_error(TSNode self) {
   return symbol == ts_builtin_sym_error;
 }
 
-uint32_t ts_node_descendant_count(TSNode self) {
+uint64_t ts_node_descendant_count(TSNode self) {
   return ts_subtree_visible_descendant_count(ts_node__subtree(self)) + 1;
 }
 
@@ -498,7 +498,7 @@ TSStateId ts_node_next_parse_state(TSNode self) {
 
 TSNode ts_node_parent(TSNode self) {
   TSNode node = ts_tree_root_node(self.tree);
-  uint32_t end_byte = ts_node_end_byte(self);
+  uint64_t end_byte = ts_node_end_byte(self);
   if (node.id == self.id) return ts_node__null();
 
   TSNode last_visible_node = node;
@@ -527,11 +527,11 @@ TSNode ts_node_parent(TSNode self) {
   return last_visible_node;
 }
 
-TSNode ts_node_child(TSNode self, uint32_t child_index) {
+TSNode ts_node_child(TSNode self, uint64_t child_index) {
   return ts_node__child(self, child_index, true);
 }
 
-TSNode ts_node_named_child(TSNode self, uint32_t child_index) {
+TSNode ts_node_named_child(TSNode self, uint64_t child_index) {
   return ts_node__child(self, child_index, false);
 }
 
@@ -563,7 +563,7 @@ recur:
   NodeChildIterator iterator = ts_node_iterate_children(&self);
   while (ts_node_child_iterator_next(&iterator, &child)) {
     if (!ts_subtree_extra(ts_node__subtree(child))) {
-      uint32_t index = iterator.structural_child_index - 1;
+      uint64_t index = iterator.structural_child_index - 1;
       if (index < field_map->child_index) continue;
 
       // Hidden nodes' fields are "inherited" by their visible parent.
@@ -607,7 +607,7 @@ recur:
   return ts_node__null();
 }
 
-static inline const char *ts_node__field_name_from_language(TSNode self, uint32_t structural_child_index) {
+static inline const char *ts_node__field_name_from_language(TSNode self, uint64_t structural_child_index) {
     const TSFieldMapEntry *field_map, *field_map_end;
     ts_language_field_map(
       self.tree->language,
@@ -623,7 +623,7 @@ static inline const char *ts_node__field_name_from_language(TSNode self, uint32_
     return NULL;
 }
 
-const char *ts_node_field_name_for_child(TSNode self, uint32_t child_index) {
+const char *ts_node_field_name_for_child(TSNode self, uint64_t child_index) {
   TSNode result = self;
   bool did_descend = true;
   const char *inherited_field_name = NULL;
@@ -632,7 +632,7 @@ const char *ts_node_field_name_for_child(TSNode self, uint32_t child_index) {
     did_descend = false;
 
     TSNode child;
-    uint32_t index = 0;
+    uint64_t index = 0;
     NodeChildIterator iterator = ts_node_iterate_children(&result);
     while (ts_node_child_iterator_next(&iterator, &child)) {
       if (ts_node__is_relevant(child, true)) {
@@ -643,8 +643,8 @@ const char *ts_node_field_name_for_child(TSNode self, uint32_t child_index) {
         }
         index++;
       } else {
-        uint32_t grandchild_index = child_index - index;
-        uint32_t grandchild_count = ts_node__relevant_child_count(child, true);
+        uint64_t grandchild_index = child_index - index;
+        uint64_t grandchild_count = ts_node__relevant_child_count(child, true);
         if (grandchild_index < grandchild_count) {
           const char *field_name = ts_node__field_name_from_language(result, iterator.structural_child_index - 1);
           if (field_name) inherited_field_name = field_name;
@@ -665,7 +665,7 @@ const char *ts_node_field_name_for_child(TSNode self, uint32_t child_index) {
 TSNode ts_node_child_by_field_name(
   TSNode self,
   const char *name,
-  uint32_t name_length
+  uint64_t name_length
 ) {
   TSFieldId field_id = ts_language_field_id_for_name(
     self.tree->language,
@@ -675,7 +675,7 @@ TSNode ts_node_child_by_field_name(
   return ts_node_child_by_field_id(self, field_id);
 }
 
-uint32_t ts_node_child_count(TSNode self) {
+uint64_t ts_node_child_count(TSNode self) {
   Subtree tree = ts_node__subtree(self);
   if (ts_subtree_child_count(tree) > 0) {
     return tree.ptr->visible_child_count;
@@ -684,7 +684,7 @@ uint32_t ts_node_child_count(TSNode self) {
   }
 }
 
-uint32_t ts_node_named_child_count(TSNode self) {
+uint64_t ts_node_named_child_count(TSNode self) {
   Subtree tree = ts_node__subtree(self);
   if (ts_subtree_child_count(tree) > 0) {
     return tree.ptr->named_child_count;
@@ -709,26 +709,26 @@ TSNode ts_node_prev_named_sibling(TSNode self) {
   return ts_node__prev_sibling(self, false);
 }
 
-TSNode ts_node_first_child_for_byte(TSNode self, uint32_t byte) {
+TSNode ts_node_first_child_for_byte(TSNode self, uint64_t byte) {
   return ts_node__first_child_for_byte(self, byte, true);
 }
 
-TSNode ts_node_first_named_child_for_byte(TSNode self, uint32_t byte) {
+TSNode ts_node_first_named_child_for_byte(TSNode self, uint64_t byte) {
   return ts_node__first_child_for_byte(self, byte, false);
 }
 
 TSNode ts_node_descendant_for_byte_range(
   TSNode self,
-  uint32_t start,
-  uint32_t end
+  uint64_t start,
+  uint64_t end
 ) {
   return ts_node__descendant_for_byte_range(self, start, end, true);
 }
 
 TSNode ts_node_named_descendant_for_byte_range(
   TSNode self,
-  uint32_t start,
-  uint32_t end
+  uint64_t start,
+  uint64_t end
 ) {
   return ts_node__descendant_for_byte_range(self, start, end, false);
 }
@@ -750,7 +750,7 @@ TSNode ts_node_named_descendant_for_point_range(
 }
 
 void ts_node_edit(TSNode *self, const TSInputEdit *edit) {
-  uint32_t start_byte = ts_node_start_byte(*self);
+  uint64_t start_byte = ts_node_start_byte(*self);
   TSPoint start_point = ts_node_start_point(*self);
 
   if (start_byte >= edit->old_end_byte) {

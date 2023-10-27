@@ -2,8 +2,8 @@
 
 typedef struct {
   Subtree tree;
-  uint32_t child_index;
-  uint32_t byte_offset;
+  uint64_t child_index;
+  uint64_t byte_offset;
 } StackEntry;
 
 typedef struct {
@@ -26,10 +26,10 @@ static inline Subtree reusable_node_tree(ReusableNode *self) {
     : NULL_SUBTREE;
 }
 
-static inline uint32_t reusable_node_byte_offset(ReusableNode *self) {
+static inline uint64_t reusable_node_byte_offset(ReusableNode *self) {
   return self->stack.size > 0
     ? self->stack.contents[self->stack.size - 1].byte_offset
-    : UINT32_MAX;
+    : UINT64_MAX;
 }
 
 static inline void reusable_node_delete(ReusableNode *self) {
@@ -38,13 +38,13 @@ static inline void reusable_node_delete(ReusableNode *self) {
 
 static inline void reusable_node_advance(ReusableNode *self) {
   StackEntry last_entry = *array_back(&self->stack);
-  uint32_t byte_offset = last_entry.byte_offset + ts_subtree_total_bytes(last_entry.tree);
+  uint64_t byte_offset = last_entry.byte_offset + ts_subtree_total_bytes(last_entry.tree);
   if (ts_subtree_has_external_tokens(last_entry.tree)) {
     self->last_external_token = ts_subtree_last_external_token(last_entry.tree);
   }
 
   Subtree tree;
-  uint32_t next_index;
+  uint64_t next_index;
   do {
     StackEntry popped_entry = array_pop(&self->stack);
     next_index = popped_entry.child_index + 1;

@@ -26,19 +26,19 @@ pub struct TagsConfiguration {
     pub query: Query,
     syntax_type_names: Vec<Box<[u8]>>,
     c_syntax_type_names: Vec<*const u8>,
-    capture_map: HashMap<u32, NamedCapture>,
-    doc_capture_index: Option<u32>,
-    name_capture_index: Option<u32>,
-    ignore_capture_index: Option<u32>,
-    local_scope_capture_index: Option<u32>,
-    local_definition_capture_index: Option<u32>,
+    capture_map: HashMap<u64, NamedCapture>,
+    doc_capture_index: Option<u64>,
+    name_capture_index: Option<u64>,
+    ignore_capture_index: Option<u64>,
+    local_scope_capture_index: Option<u64>,
+    local_definition_capture_index: Option<u64>,
     tags_pattern_index: usize,
     pattern_info: Vec<PatternInfo>,
 }
 
 #[derive(Debug)]
 pub struct NamedCapture {
-    pub syntax_type_id: u32,
+    pub syntax_type_id: u64,
     pub is_definition: bool,
 }
 
@@ -56,7 +56,7 @@ pub struct Tag {
     pub utf16_column_range: Range<usize>,
     pub docs: Option<String>,
     pub is_definition: bool,
-    pub syntax_type_id: u32,
+    pub syntax_type_id: u64,
 }
 
 #[derive(Debug, Error, PartialEq)]
@@ -75,7 +75,7 @@ pub enum Error {
 
 #[derive(Debug, Default)]
 struct PatternInfo {
-    docs_adjacent_capture: Option<u32>,
+    docs_adjacent_capture: Option<u64>,
     local_scope_inherits: bool,
     name_must_be_non_local: bool,
     doc_strip_regex: Option<Regex>,
@@ -138,11 +138,11 @@ impl TagsConfiguration {
         for (i, name) in query.capture_names().iter().enumerate() {
             match *name {
                 "" => continue,
-                "name" => name_capture_index = Some(i as u32),
-                "ignore" => ignore_capture_index = Some(i as u32),
-                "doc" => doc_capture_index = Some(i as u32),
-                "local.scope" => local_scope_capture_index = Some(i as u32),
-                "local.definition" => local_definition_capture_index = Some(i as u32),
+                "name" => name_capture_index = Some(i as u64),
+                "ignore" => ignore_capture_index = Some(i as u64),
+                "doc" => doc_capture_index = Some(i as u64),
+                "local.scope" => local_scope_capture_index = Some(i as u64),
+                "local.definition" => local_definition_capture_index = Some(i as u64),
                 "local.reference" => continue,
                 _ => {
                     let mut is_definition = false;
@@ -164,9 +164,9 @@ impl TagsConfiguration {
                             .unwrap_or_else(|| {
                                 syntax_type_names.push(c_kind);
                                 syntax_type_names.len() - 1
-                            }) as u32;
+                            }) as u64;
                         capture_map.insert(
-                            i as u32,
+                            i as u64,
                             NamedCapture {
                                 syntax_type_id,
                                 is_definition,
@@ -236,7 +236,7 @@ impl TagsConfiguration {
         })
     }
 
-    pub fn syntax_type_name(&self, id: u32) -> &str {
+    pub fn syntax_type_name(&self, id: u64) -> &str {
         unsafe {
             let cstr =
                 CStr::from_ptr(self.syntax_type_names[id as usize].as_ptr() as *const c_char)

@@ -26,25 +26,25 @@ pub enum TSTagsError {
 
 #[repr(C)]
 pub struct TSPoint {
-    row: u32,
-    column: u32,
+    row: u64,
+    column: u64,
 }
 
 #[repr(C)]
 pub struct TSTag {
-    pub start_byte: u32,
-    pub end_byte: u32,
-    pub name_start_byte: u32,
-    pub name_end_byte: u32,
-    pub line_start_byte: u32,
-    pub line_end_byte: u32,
+    pub start_byte: u64,
+    pub end_byte: u64,
+    pub name_start_byte: u64,
+    pub name_end_byte: u64,
+    pub line_start_byte: u64,
+    pub line_end_byte: u64,
     pub start_point: TSPoint,
     pub end_point: TSPoint,
-    pub utf16_start_colum: u32,
-    pub utf16_end_colum: u32,
-    pub docs_start_byte: u32,
-    pub docs_end_byte: u32,
-    pub syntax_type_id: u32,
+    pub utf16_start_colum: u64,
+    pub utf16_end_colum: u64,
+    pub docs_start_byte: u64,
+    pub docs_end_byte: u64,
+    pub syntax_type_id: u64,
     pub is_definition: bool,
 }
 
@@ -94,8 +94,8 @@ pub unsafe extern "C" fn ts_tagger_add_language(
     language: Language,
     tags_query: *const u8,
     locals_query: *const u8,
-    tags_query_len: u32,
-    locals_query_len: u32,
+    tags_query_len: u64,
+    locals_query_len: u64,
 ) -> TSTagsError {
     let tagger = unwrap_mut_ptr(this);
     let scope_name = unwrap(CStr::from_ptr(scope_name).to_str());
@@ -143,7 +143,7 @@ pub unsafe extern "C" fn ts_tagger_tag(
     this: *mut TSTagger,
     scope_name: *const c_char,
     source_code: *const u8,
-    source_code_len: u32,
+    source_code_len: u64,
     output: *mut TSTagsBuffer,
     cancellation_flag: *const AtomicUsize,
 ) -> TSTagsError {
@@ -189,24 +189,24 @@ pub unsafe extern "C" fn ts_tagger_tag(
                 buffer.docs.extend_from_slice(docs.as_bytes());
             }
             buffer.tags.push(TSTag {
-                start_byte: tag.range.start as u32,
-                end_byte: tag.range.end as u32,
-                name_start_byte: tag.name_range.start as u32,
-                name_end_byte: tag.name_range.end as u32,
-                line_start_byte: tag.line_range.start as u32,
-                line_end_byte: tag.line_range.end as u32,
+                start_byte: tag.range.start as u64,
+                end_byte: tag.range.end as u64,
+                name_start_byte: tag.name_range.start as u64,
+                name_end_byte: tag.name_range.end as u64,
+                line_start_byte: tag.line_range.start as u64,
+                line_end_byte: tag.line_range.end as u64,
                 start_point: TSPoint {
-                    row: tag.span.start.row as u32,
-                    column: tag.span.start.column as u32,
+                    row: tag.span.start.row as u64,
+                    column: tag.span.start.column as u64,
                 },
                 end_point: TSPoint {
-                    row: tag.span.end.row as u32,
-                    column: tag.span.end.column as u32,
+                    row: tag.span.end.row as u64,
+                    column: tag.span.end.column as u64,
                 },
-                utf16_start_colum: tag.utf16_column_range.start as u32,
-                utf16_end_colum: tag.utf16_column_range.end as u32,
-                docs_start_byte: prev_docs_len as u32,
-                docs_end_byte: buffer.docs.len() as u32,
+                utf16_start_colum: tag.utf16_column_range.start as u64,
+                utf16_end_colum: tag.utf16_column_range.end as u64,
+                docs_start_byte: prev_docs_len as u64,
+                docs_end_byte: buffer.docs.len() as u64,
                 syntax_type_id: tag.syntax_type_id,
                 is_definition: tag.is_definition,
             });
@@ -260,9 +260,9 @@ pub unsafe extern "C" fn ts_tags_buffer_tags(this: *const TSTagsBuffer) -> *cons
 ///
 /// `this` must be non-null and a valid pointer to a [`TSTagsBuffer`] instance.
 #[no_mangle]
-pub unsafe extern "C" fn ts_tags_buffer_tags_len(this: *const TSTagsBuffer) -> u32 {
+pub unsafe extern "C" fn ts_tags_buffer_tags_len(this: *const TSTagsBuffer) -> u64 {
     let buffer = unwrap_ptr(this);
-    buffer.tags.len() as u32
+    buffer.tags.len() as u64
 }
 
 /// Get the documentation strings from a TSTagsBuffer.
@@ -290,9 +290,9 @@ pub unsafe extern "C" fn ts_tags_buffer_docs(this: *const TSTagsBuffer) -> *cons
 /// `this` must be non-null and a valid pointer to a [`TSTagsBuffer`] instance created by
 /// [`ts_tags_buffer_new`].
 #[no_mangle]
-pub unsafe extern "C" fn ts_tags_buffer_docs_len(this: *const TSTagsBuffer) -> u32 {
+pub unsafe extern "C" fn ts_tags_buffer_docs_len(this: *const TSTagsBuffer) -> u64 {
     let buffer = unwrap_ptr(this);
-    buffer.docs.len() as u32
+    buffer.docs.len() as u64
 }
 
 /// Get whether or not a TSTagsBuffer contains any parse errors.
@@ -316,7 +316,7 @@ pub unsafe extern "C" fn ts_tags_buffer_found_parse_error(this: *const TSTagsBuf
 /// `this` must be non-null and a valid pointer to a [`TSTagger`] instance created by
 /// [`ts_tagger_new`].
 /// `scope_name` must be non-null and a valid pointer to a null-terminated string.
-/// `len` must be non-null and a valid pointer to a `u32`.
+/// `len` must be non-null and a valid pointer to a `u64`.
 ///
 /// The caller must ensure that the returned pointer is not used after the [`TSTagger`]
 /// is deleted with [`ts_tagger_delete`], else the data will point to garbage.
@@ -326,7 +326,7 @@ pub unsafe extern "C" fn ts_tags_buffer_found_parse_error(this: *const TSTagsBuf
 pub unsafe extern "C" fn ts_tagger_syntax_kinds_for_scope_name(
     this: *mut TSTagger,
     scope_name: *const c_char,
-    len: *mut u32,
+    len: *mut u64,
 ) -> *const *const c_char {
     let tagger = unwrap_mut_ptr(this);
     let scope_name = unwrap(CStr::from_ptr(scope_name).to_str());
@@ -334,7 +334,7 @@ pub unsafe extern "C" fn ts_tagger_syntax_kinds_for_scope_name(
 
     *len = 0;
     if let Some(config) = tagger.languages.get(scope_name) {
-        *len = config.c_syntax_type_names.len() as u32;
+        *len = config.c_syntax_type_names.len() as u64;
         return config.c_syntax_type_names.as_ptr() as *const *const c_char;
     }
     std::ptr::null()

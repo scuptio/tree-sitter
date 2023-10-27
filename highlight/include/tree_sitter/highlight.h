@@ -25,7 +25,7 @@ typedef struct TSHighlightBuffer TSHighlightBuffer;
 TSHighlighter *ts_highlighter_new(
   const char **highlight_names,
   const char **attribute_strings,
-  uint32_t highlight_count
+  uint64_t highlight_count
 );
 
 // Delete a syntax highlighter.
@@ -46,9 +46,9 @@ TSHighlightError ts_highlighter_add_language(
   const char *highlight_query,
   const char *injection_query,
   const char *locals_query,
-  uint32_t highlight_query_len,
-  uint32_t injection_query_len,
-  uint32_t locals_query_len,
+  uint64_t highlight_query_len,
+  uint64_t injection_query_len,
+  uint64_t locals_query_len,
   bool apply_all_captures
 );
 
@@ -58,7 +58,7 @@ TSHighlightError ts_highlighter_highlight(
   const TSHighlighter *self,
   const char *scope_name,
   const char *source_code,
-  uint32_t source_code_len,
+  uint64_t source_code_len,
   TSHighlightBuffer *output,
   const size_t *cancellation_flag
 );
@@ -72,9 +72,9 @@ void ts_highlight_buffer_delete(TSHighlightBuffer *);
 
 // Access the HTML content of a highlight buffer.
 const uint8_t *ts_highlight_buffer_content(const TSHighlightBuffer *);
-const uint32_t *ts_highlight_buffer_line_offsets(const TSHighlightBuffer *);
-uint32_t ts_highlight_buffer_len(const TSHighlightBuffer *);
-uint32_t ts_highlight_buffer_line_count(const TSHighlightBuffer *);
+const uint64_t *ts_highlight_buffer_line_offsets(const TSHighlightBuffer *);
+uint64_t ts_highlight_buffer_len(const TSHighlightBuffer *);
+uint64_t ts_highlight_buffer_line_count(const TSHighlightBuffer *);
 
 #ifdef __cplusplus
 }

@@ -49,7 +49,7 @@
     snprintf(                                                 \
       buf + off,                                              \
       TREE_SITTER_SERIALIZATION_BUFFER_SIZE - off,            \
-      ", size:%u",                                            \
+      ", size:%lu",                                            \
       size                                                    \
     );                                                        \
     ts_parser__log(self);                                     \
@@ -80,7 +80,7 @@ static const unsigned OP_COUNT_PER_TIMEOUT_CHECK = 100;
 typedef struct {
   Subtree token;
   Subtree last_external_token;
-  uint32_t byte_index;
+  uint64_t byte_index;
 } TokenCache;
 
 struct TSParser {
@@ -124,16 +124,16 @@ typedef enum {
 
 typedef struct {
   const char *string;
-  uint32_t length;
+  uint64_t length;
 } TSStringInput;
 
 // StringInput
 
 static const char *ts_string_input_read(
   void *_self,
-  uint32_t byte,
+  uint64_t byte,
   TSPoint point,
-  uint32_t *length
+  uint64_t *length
 ) {
   (void)point;
   TSStringInput *self = (TSStringInput *)_self;
@@ -180,12 +180,12 @@ static bool ts_parser__breakdown_top_of_stack(
 
     did_break_down = true;
     pending = false;
-    for (uint32_t i = 0; i < pop.size; i++) {
+    for (uint64_t i = 0; i < pop.size; i++) {
       StackSlice slice = pop.contents[i];
       TSStateId state = ts_stack_state(self->stack, slice.version);
       Subtree parent = *array_front(&slice.subtrees);
 
-      for (uint32_t j = 0, n = ts_subtree_child_count(parent); j < n; j++) {
+      for (uint64_t j = 0, n = ts_subtree_child_count(parent); j < n; j++) {
         Subtree child = ts_subtree_children(parent)[j];
         pending = ts_subtree_child_count(child) > 0;
 
@@ -199,7 +199,7 @@ static bool ts_parser__breakdown_top_of_stack(
         ts_stack_push(self->stack, slice.version, child, pending, state);
       }
 
-      for (uint32_t j = 1; j < slice.subtrees.size; j++) {
+      for (uint64_t j = 1; j < slice.subtrees.size; j++) {
         Subtree tree = slice.subtrees.contents[j];
         ts_stack_push(self->stack, slice.version, tree, false, state);
       }
@@ -407,8 +407,8 @@ static Subtree ts_parser__lex(
   int32_t first_error_character = 0;
   Length error_start_position = length_zero();
   Length error_end_position = length_zero();
-  uint32_t lookahead_end_byte = 0;
-  uint32_t external_scanner_state_len = 0;
+  uint64_t lookahead_end_byte = 0;
+  uint64_t external_scanner_state_len = 0;
   bool external_scanner_state_changed = false;
   ts_lexer_reset(&self->lexer, start_position);
 
@@ -417,7 +417,7 @@ static Subtree ts_parser__lex(
 
     if (valid_external_tokens) {
       LOG(
-        "lex_external state:%d, row:%u, column:%u",
+        "lex_external state:%d, row:%lu, column:%lu",
         lex_mode.external_lex_state,
         current_position.extent.row,
         current_position.extent.column
@@ -476,7 +476,7 @@ static Subtree ts_parser__lex(
     }
 
     LOG(
-      "lex_internal state:%d, row:%u, column:%u",
+      "lex_internal state:%d, row:%lu, column:%lu",
       lex_mode.lex_state,
       current_position.extent.row,
       current_position.extent.column
@@ -520,7 +520,7 @@ static Subtree ts_parser__lex(
   if (skipped_error) {
     Length padding = length_sub(error_start_position, start_position);
     Length size = length_sub(error_end_position, error_start_position);
-    uint32_t lookahead_bytes = lookahead_end_byte - error_end_position.bytes;
+    uint64_t lookahead_bytes = lookahead_end_byte - error_end_position.bytes;
     result = ts_subtree_new_error(
       &self->tree_pool,
       first_error_character,
@@ -535,12 +535,12 @@ static Subtree ts_parser__lex(
     TSSymbol symbol = self->lexer.data.result_symbol;
     Length padding = length_sub(self->lexer.token_start_position, start_position);
     Length size = length_sub(self->lexer.token_end_position, self->lexer.token_start_position);
-    uint32_t lookahead_bytes = lookahead_end_byte - self->lexer.token_end_position.bytes;
+    uint64_t lookahead_bytes = lookahead_end_byte - self->lexer.token_end_position.bytes;
 
     if (found_external_token) {
       symbol = self->language->external_scanner.symbol_map[symbol];
     } else if (symbol == self->language->keyword_capture_token && symbol != 0) {
-      uint32_t end_byte = self->lexer.token_end_position.bytes;
+      uint64_t end_byte = self->lexer.token_end_position.bytes;
       ts_lexer_reset(&self->lexer, self->lexer.token_start_position);
       ts_lexer_start(&self->lexer);
       if (
@@ -607,7 +607,7 @@ static Subtree ts_parser__get_cached_token(
 
 static void ts_parser__set_cached_token(
   TSParser *self,
-  uint32_t byte_index,
+  uint64_t byte_index,
   Subtree last_external_token,
   Subtree token
 ) {
@@ -623,8 +623,8 @@ static void ts_parser__set_cached_token(
 
 static bool ts_parser__has_included_range_difference(
   const TSParser *self,
-  uint32_t start_position,
-  uint32_t end_position
+  uint64_t start_position,
+  uint64_t end_position
 ) {
   return ts_range_array_intersects(
     &self->included_range_differences,
@@ -638,18 +638,18 @@ static Subtree ts_parser__reuse_node(
   TSParser *self,
   StackVersion version,
   TSStateId *state,
-  uint32_t position,
+  uint64_t position,
   Subtree last_external_token,
   TableEntry *table_entry
 ) {
   Subtree result;
   while ((result = reusable_node_tree(&self->reusable_node)).ptr) {
-    uint32_t byte_offset = reusable_node_byte_offset(&self->reusable_node);
-    uint32_t end_byte_offset = byte_offset + ts_subtree_total_bytes(result);
+    uint64_t byte_offset = reusable_node_byte_offset(&self->reusable_node);
+    uint64_t end_byte_offset = byte_offset + ts_subtree_total_bytes(result);
 
     // Do not reuse an EOF node if the included ranges array has changes
     // later on in the file.
-    if (ts_subtree_is_eof(result)) end_byte_offset = UINT32_MAX;
+    if (ts_subtree_is_eof(result)) end_byte_offset = UINT64_MAX;
 
     if (byte_offset > position) {
       LOG("before_reusable_node symbol:%s", TREE_NAME(result));
@@ -816,13 +816,13 @@ static StackVersion ts_parser__reduce(
   TSParser *self,
   StackVersion version,
   TSSymbol symbol,
-  uint32_t count,
+  uint64_t count,
   int dynamic_precedence,
   uint16_t production_id,
   bool is_fragile,
   bool end_of_non_terminal_extra
 ) {
-  uint32_t initial_version_count = ts_stack_version_count(self->stack);
+  uint64_t initial_version_count = ts_stack_version_count(self->stack);
 
   // Pop the given number of nodes from the given version of the parse stack.
   // If stack versions have previously merged, then there may be more than one
@@ -830,8 +830,8 @@ static StackVersion ts_parser__reduce(
   // contain the popped children, and push it onto the stack in place of the
   // children.
   StackSliceArray pop = ts_stack_pop_count(self->stack, version, count);
-  uint32_t removed_version_count = 0;
-  for (uint32_t i = 0; i < pop.size; i++) {
+  uint64_t removed_version_count = 0;
+  for (uint64_t i = 0; i < pop.size; i++) {
     StackSlice slice = pop.contents[i];
     StackVersion slice_version = slice.version - removed_version_count;
 
@@ -908,7 +908,7 @@ static StackVersion ts_parser__reduce(
     // Push the parent node onto the stack, along with any extra tokens that
     // were previously on top of the stack.
     ts_stack_push(self->stack, slice_version, ts_subtree_from_mut(parent), false, next_state);
-    for (uint32_t j = 0; j < self->trailing_extras.size; j++) {
+    for (uint64_t j = 0; j < self->trailing_extras.size; j++) {
       ts_stack_push(self->stack, slice_version, self->trailing_extras.contents[j], false, next_state);
     }
 
@@ -936,17 +936,17 @@ static void ts_parser__accept(
   ts_stack_push(self->stack, version, lookahead, false, 1);
 
   StackSliceArray pop = ts_stack_pop_all(self->stack, version);
-  for (uint32_t i = 0; i < pop.size; i++) {
+  for (uint64_t i = 0; i < pop.size; i++) {
     SubtreeArray trees = pop.contents[i].subtrees;
 
     Subtree root = NULL_SUBTREE;
-    for (uint32_t j = trees.size - 1; j + 1 > 0; j--) {
+    for (uint64_t j = trees.size - 1; j + 1 > 0; j--) {
       Subtree tree = trees.contents[j];
       if (!ts_subtree_extra(tree)) {
         assert(!tree.data.is_inline);
-        uint32_t child_count = ts_subtree_child_count(tree);
+        uint64_t child_count = ts_subtree_child_count(tree);
         const Subtree *children = ts_subtree_children(tree);
-        for (uint32_t k = 0; k < child_count; k++) {
+        for (uint64_t k = 0; k < child_count; k++) {
           ts_subtree_retain(children[k]);
         }
         array_splice(&trees, j, 1, child_count, children);
@@ -985,12 +985,12 @@ static bool ts_parser__do_all_potential_reductions(
   StackVersion starting_version,
   TSSymbol lookahead_symbol
 ) {
-  uint32_t initial_version_count = ts_stack_version_count(self->stack);
+  uint64_t initial_version_count = ts_stack_version_count(self->stack);
 
   bool can_shift_lookahead_symbol = false;
   StackVersion version = starting_version;
   for (unsigned i = 0; true; i++) {
-    uint32_t version_count = ts_stack_version_count(self->stack);
+    uint64_t version_count = ts_stack_version_count(self->stack);
     if (version >= version_count) break;
 
     bool merged = false;
@@ -1018,7 +1018,7 @@ static bool ts_parser__do_all_potential_reductions(
     for (TSSymbol symbol = first_symbol; symbol < end_symbol; symbol++) {
       TableEntry entry;
       ts_language_table_entry(self->language, state, symbol, &entry);
-      for (uint32_t j = 0; j < entry.action_count; j++) {
+      for (uint64_t j = 0; j < entry.action_count; j++) {
         TSParseAction action = entry.actions[j];
         switch (action.type) {
           case TSParseActionTypeShift:
@@ -1041,7 +1041,7 @@ static bool ts_parser__do_all_potential_reductions(
     }
 
     StackVersion reduction_version = STACK_VERSION_NONE;
-    for (uint32_t j = 0; j < self->reduce_actions.size; j++) {
+    for (uint64_t j = 0; j < self->reduce_actions.size; j++) {
       ReduceAction action = self->reduce_actions.contents[j];
 
       reduction_version = ts_parser__reduce(
@@ -1099,7 +1099,7 @@ static bool ts_parser__recover_to_state(
     if (error_trees.size > 0) {
       assert(error_trees.size == 1);
       Subtree error_tree = error_trees.contents[0];
-      uint32_t error_child_count = ts_subtree_child_count(error_tree);
+      uint64_t error_child_count = ts_subtree_child_count(error_tree);
       if (error_child_count > 0) {
         array_splice(&slice.subtrees, 0, 0, error_child_count, ts_subtree_children(error_tree));
         for (unsigned j = 0; j < error_child_count; j++) {
@@ -1248,7 +1248,7 @@ static void ts_parser__recover(
 
   // If the current lookahead token is an extra token, mark it as extra. This means it won't
   // be counted in error cost calculations.
-  unsigned n;
+  uint64_t n;
   const TSParseAction *actions = ts_language_actions(self->language, 1, ts_subtree_symbol(lookahead), &n);
   if (n > 0 && actions[n - 1].type == TSParseActionTypeShift && actions[n - 1].shift.extra) {
     MutableSubtree mutable_lookahead = ts_subtree_make_mut(&self->tree_pool, lookahead);
@@ -1311,13 +1311,13 @@ static void ts_parser__handle_error(
   StackVersion version,
   Subtree lookahead
 ) {
-  uint32_t previous_version_count = ts_stack_version_count(self->stack);
+  uint64_t previous_version_count = ts_stack_version_count(self->stack);
 
   // Perform any reductions that can happen in this state, regardless of the lookahead. After
   // skipping one or more invalid tokens, the parser might find a token that would have allowed
   // a reduction to take place.
   ts_parser__do_all_potential_reductions(self, version, 0);
-  uint32_t version_count = ts_stack_version_count(self->stack);
+  uint64_t version_count = ts_stack_version_count(self->stack);
   Length position = ts_stack_position(self->stack, version);
 
   // Push a discontinuity onto the stack. Merge all of the stack versions that
@@ -1349,7 +1349,7 @@ static void ts_parser__handle_error(
           ts_lexer_reset(&self->lexer, position);
           ts_lexer_mark_end(&self->lexer);
           Length padding = length_sub(self->lexer.token_end_position, position);
-          uint32_t lookahead_bytes = ts_subtree_total_bytes(lookahead) + ts_subtree_lookahead_bytes(lookahead);
+          uint64_t lookahead_bytes = ts_subtree_total_bytes(lookahead) + ts_subtree_lookahead_bytes(lookahead);
 
           StackVersion version_with_missing_tree = ts_stack_copy_version(self->stack, v);
           Subtree missing_tree = ts_subtree_new_missing_leaf(
@@ -1410,7 +1410,7 @@ static bool ts_parser__advance(
   bool allow_node_reuse
 ) {
   TSStateId state = ts_stack_state(self->stack, version);
-  uint32_t position = ts_stack_position(self->stack, version).bytes;
+  uint64_t position = ts_stack_position(self->stack, version).bytes;
   Subtree last_external_token = ts_stack_last_external_token(self->stack, version);
 
   bool did_reuse = true;
@@ -1475,7 +1475,7 @@ static bool ts_parser__advance(
     // version, whereas SHIFT actions update the existing stack version
     // and terminate this loop.
     StackVersion last_reduction_version = STACK_VERSION_NONE;
-    for (uint32_t i = 0; i < table_entry.action_count; i++) {
+    for (uint64_t i = 0; i < table_entry.action_count; i++) {
       TSParseAction action = table_entry.actions[i];
 
       switch (action.type) {
@@ -1844,12 +1844,12 @@ void ts_parser_set_timeout_micros(TSParser *self, uint64_t timeout_micros) {
 bool ts_parser_set_included_ranges(
   TSParser *self,
   const TSRange *ranges,
-  uint32_t count
+  uint64_t count
 ) {
   return ts_lexer_set_included_ranges(&self->lexer, ranges, count);
 }
 
-const TSRange *ts_parser_included_ranges(const TSParser *self, uint32_t *count) {
+const TSRange *ts_parser_included_ranges(const TSParser *self, uint64_t *count) {
   return ts_lexer_included_ranges(&self->lexer, count);
 }
 
@@ -1901,7 +1901,7 @@ TSTree *ts_parser_parse(
     LOG_TREE(self->old_tree);
     for (unsigned i = 0; i < self->included_range_differences.size; i++) {
       TSRange *range = &self->included_range_differences.contents[i];
-      LOG("different_included_range %u - %u", range->start_byte, range->end_byte);
+      LOG("different_included_range %lu - %lu", range->start_byte, range->end_byte);
     }
   } else {
     reusable_node_clear(&self->reusable_node);
@@ -1915,7 +1915,7 @@ TSTree *ts_parser_parse(
     self->end_clock = clock_null();
   }
 
-  uint32_t position = 0, last_position = 0, version_count = 0;
+  uint64_t position = 0, last_position = 0, version_count = 0;
   do {
     for (
       StackVersion version = 0;
@@ -1926,7 +1926,7 @@ TSTree *ts_parser_parse(
       bool allow_node_reuse = version_count == 1;
       while (ts_stack_is_active(self->stack, version)) {
         LOG(
-          "process version:%d, version_count:%u, state:%d, row:%u, col:%u",
+          "process version:%d, version_count:%lu, state:%d, row:%lu, col:%lu",
           version,
           ts_stack_version_count(self->stack),
           ts_stack_state(self->stack, version),
@@ -1988,7 +1988,7 @@ TSTree *ts_parser_parse_string(
   TSParser *self,
   const TSTree *old_tree,
   const char *string,
-  uint32_t length
+  uint64_t length
 ) {
   return ts_parser_parse_string_encoding(self, old_tree, string, length, TSInputEncodingUTF8);
 }
@@ -1997,7 +1997,7 @@ TSTree *ts_parser_parse_string_encoding(
   TSParser *self,
   const TSTree *old_tree,
   const char *string,
-  uint32_t length,
+  uint64_t length,
   TSInputEncoding encoding
 ) {
   TSStringInput input = {string, length};

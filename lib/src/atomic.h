@@ -10,12 +10,12 @@ static inline size_t atomic_load(const volatile size_t *p) {
   return *p;
 }
 
-static inline uint32_t atomic_inc(volatile uint32_t *p) {
+static inline uint64_t atomic_inc(volatile uint64_t *p) {
   *p += 1;
   return *p;
 }
 
-static inline uint32_t atomic_dec(volatile uint32_t *p) {
+static inline uint64_t atomic_dec(volatile uint64_t *p) {
   *p-= 1;
   return *p;
 }
@@ -28,11 +28,11 @@ static inline size_t atomic_load(const volatile size_t *p) {
   return *p;
 }
 
-static inline uint32_t atomic_inc(volatile uint32_t *p) {
+static inline uint64_t atomic_inc(volatile uint64_t *p) {
   return InterlockedIncrement((long volatile *)p);
 }
 
-static inline uint32_t atomic_dec(volatile uint32_t *p) {
+static inline uint64_t atomic_dec(volatile uint64_t *p) {
   return InterlockedDecrement((long volatile *)p);
 }
 
@@ -46,7 +46,7 @@ static inline size_t atomic_load(const volatile size_t *p) {
 #endif
 }
 
-static inline uint32_t atomic_inc(volatile uint32_t *p) {
+static inline uint64_t atomic_inc(volatile uint64_t *p) {
   #ifdef __ATOMIC_RELAXED
     return __atomic_add_fetch(p, 1U, __ATOMIC_SEQ_CST);
   #else
@@ -54,7 +54,7 @@ static inline uint32_t atomic_inc(volatile uint32_t *p) {
   #endif
 }
 
-static inline uint32_t atomic_dec(volatile uint32_t *p) {
+static inline uint64_t atomic_dec(volatile uint64_t *p) {
   #ifdef __ATOMIC_RELAXED
     return __atomic_sub_fetch(p, 1U, __ATOMIC_SEQ_CST);
   #else

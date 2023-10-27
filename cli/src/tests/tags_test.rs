@@ -366,7 +366,7 @@ fn test_tags_via_c_api() {
                 language,
                 JS_TAG_QUERY.as_ptr(),
                 ptr::null(),
-                JS_TAG_QUERY.len() as u32,
+                JS_TAG_QUERY.len() as u64,
                 0,
             )
         };
@@ -377,7 +377,7 @@ fn test_tags_via_c_api() {
                 tagger,
                 c_scope_name.as_ptr(),
                 source_code.as_ptr(),
-                source_code.len() as u32,
+                source_code.len() as u64,
                 buffer,
                 ptr::null(),
             )
@@ -398,7 +398,7 @@ fn test_tags_via_c_api() {
         .unwrap();
 
         let syntax_types: Vec<&str> = unsafe {
-            let mut len: u32 = 0;
+            let mut len: u64 = 0;
             let ptr =
                 c::ts_tagger_syntax_kinds_for_scope_name(tagger, c_scope_name.as_ptr(), &mut len);
             slice::from_raw_parts(ptr, len as usize)

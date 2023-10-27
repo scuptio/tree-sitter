@@ -30,8 +30,8 @@ static void ts_range_array_add(
 bool ts_range_array_intersects(
   const TSRangeArray *self,
   unsigned start_index,
-  uint32_t start_byte,
-  uint32_t end_byte
+  uint64_t start_byte,
+  uint64_t end_byte
 ) {
   for (unsigned i = start_index; i < self->size; i++) {
     TSRange *range = &self->contents[i];
@@ -171,9 +171,9 @@ static void iterator_get_visible_state(
   const Iterator *self,
   Subtree *tree,
   TSSymbol *alias_symbol,
-  uint32_t *start_byte
+  uint64_t *start_byte
 ) {
-  uint32_t i = self->cursor.stack.size - 1;
+  uint64_t i = self->cursor.stack.size - 1;
 
   if (self->in_padding) {
     if (i == 0) return;
@@ -207,7 +207,7 @@ static void iterator_ascend(Iterator *self) {
   self->cursor.stack.size--;
 }
 
-static bool iterator_descend(Iterator *self, uint32_t goal_position) {
+static bool iterator_descend(Iterator *self, uint64_t goal_position) {
   if (self->in_padding) return false;
 
   bool did_descend = false;
@@ -215,8 +215,8 @@ static bool iterator_descend(Iterator *self, uint32_t goal_position) {
     did_descend = false;
     TreeCursorEntry entry = *array_back(&self->cursor.stack);
     Length position = entry.position;
-    uint32_t structural_child_index = 0;
-    for (uint32_t i = 0, n = ts_subtree_child_count(*entry.subtree); i < n; i++) {
+    uint64_t structural_child_index = 0;
+    for (uint64_t i = 0, n = ts_subtree_child_count(*entry.subtree); i < n; i++) {
       const Subtree *child = &ts_subtree_children(*entry.subtree)[i];
       Length child_left = length_add(position, ts_subtree_padding(*child));
       Length child_right = length_add(child_left, ts_subtree_size(*child));
@@ -267,10 +267,10 @@ static void iterator_advance(Iterator *self) {
     if (iterator_done(self)) return;
 
     const Subtree *parent = array_back(&self->cursor.stack)->subtree;
-    uint32_t child_index = entry.child_index + 1;
+    uint64_t child_index = entry.child_index + 1;
     if (ts_subtree_child_count(*parent) > child_index) {
       Length position = length_add(entry.position, ts_subtree_total_size(*entry.subtree));
-      uint32_t structural_child_index = entry.structural_child_index;
+      uint64_t structural_child_index = entry.structural_child_index;
       if (!ts_subtree_extra(*entry.subtree)) structural_child_index++;
       const Subtree *next_child = &ts_subtree_children(*parent)[child_index];
 
@@ -307,8 +307,8 @@ static IteratorComparison iterator_compare(
 ) {
   Subtree old_tree = NULL_SUBTREE;
   Subtree new_tree = NULL_SUBTREE;
-  uint32_t old_start = 0;
-  uint32_t new_start = 0;
+  uint64_t old_start = 0;
+  uint64_t new_start = 0;
   TSSymbol old_alias_symbol = 0;
   TSSymbol new_alias_symbol = 0;
   iterator_get_visible_state(old_iter, &old_tree, &old_alias_symbol, &old_start);

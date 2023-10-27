@@ -285,7 +285,7 @@ fn format_sexp(sexp: &String) -> String {
     format_sexp_indented(sexp, 0)
 }
 
-fn format_sexp_indented(sexp: &String, initial_indent_level: u32) -> String {
+fn format_sexp_indented(sexp: &String, initial_indent_level: u64) -> String {
     let mut formatted = String::new();
 
     let mut indent_level = initial_indent_level;

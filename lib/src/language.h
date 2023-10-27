@@ -12,7 +12,7 @@ extern "C" {
 
 typedef struct {
   const TSParseAction *actions;
-  uint32_t action_count;
+  uint64_t action_count;
   bool is_reusable;
 } TableEntry;
 
@@ -48,7 +48,7 @@ static inline const TSParseAction *ts_language_actions(
   const TSLanguage *self,
   TSStateId state,
   TSSymbol symbol,
-  uint32_t *count
+  uint64_t *count
 ) {
   TableEntry entry;
   ts_language_table_entry(self, state, symbol, &entry);
@@ -79,7 +79,7 @@ static inline uint16_t ts_language_lookup(
   TSSymbol symbol
 ) {
   if (state >= self->large_state_count) {
-    uint32_t index = self->small_parse_table_map[state - self->large_state_count];
+    uint64_t index = self->small_parse_table_map[state - self->large_state_count];
     const uint16_t *data = &self->small_parse_table[index];
     uint16_t group_count = *(data++);
     for (unsigned i = 0; i < group_count; i++) {
@@ -118,7 +118,7 @@ static inline LookaheadIterator ts_language_lookaheads(
   const uint16_t *group_end = NULL;
   uint16_t group_count = 0;
   if (is_small_state) {
-    uint32_t index = self->small_parse_table_map[state - self->large_state_count];
+    uint64_t index = self->small_parse_table_map[state - self->large_state_count];
     data = &self->small_parse_table[index];
     group_end = data + 1;
     group_count = *data;
@@ -206,7 +206,7 @@ static inline const bool *ts_language_enabled_external_tokens(
 
 static inline const TSSymbol *ts_language_alias_sequence(
   const TSLanguage *self,
-  uint32_t production_id
+  uint64_t production_id
 ) {
   return production_id ?
     &self->alias_sequences[production_id * self->max_alias_sequence_length] :
@@ -215,8 +215,8 @@ static inline const TSSymbol *ts_language_alias_sequence(
 
 static inline TSSymbol ts_language_alias_at(
   const TSLanguage *self,
-  uint32_t production_id,
-  uint32_t child_index
+  uint64_t production_id,
+  uint64_t child_index
 ) {
   return production_id ?
     self->alias_sequences[production_id * self->max_alias_sequence_length + child_index] :
@@ -225,7 +225,7 @@ static inline TSSymbol ts_language_alias_at(
 
 static inline void ts_language_field_map(
   const TSLanguage *self,
-  uint32_t production_id,
+  uint64_t production_id,
   const TSFieldMapEntry **start,
   const TSFieldMapEntry **end
 ) {

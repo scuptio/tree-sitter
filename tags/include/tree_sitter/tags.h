@@ -20,19 +20,19 @@ typedef enum {
 } TSTagsError;
 
 typedef struct {
-  uint32_t start_byte;
-  uint32_t end_byte;
-  uint32_t name_start_byte;
-  uint32_t name_end_byte;
-  uint32_t line_start_byte;
-  uint32_t line_end_byte;
+  uint64_t start_byte;
+  uint64_t end_byte;
+  uint64_t name_start_byte;
+  uint64_t name_end_byte;
+  uint64_t line_start_byte;
+  uint64_t line_end_byte;
   TSPoint start_point;
   TSPoint end_point;
-  uint32_t utf16_start_column;
-  uint32_t utf16_end_column;
-  uint32_t docs_start_byte;
-  uint32_t docs_end_byte;
-  uint32_t syntax_type_id;
+  uint64_t utf16_start_column;
+  uint64_t utf16_end_column;
+  uint64_t docs_start_byte;
+  uint64_t docs_end_byte;
+  uint64_t syntax_type_id;
   bool is_definition;
 } TSTag;
 
@@ -55,8 +55,8 @@ TSTagsError ts_tagger_add_language(
   const TSLanguage *language,
   const char *tags_query,
   const char *locals_query,
-  uint32_t tags_query_len,
-  uint32_t locals_query_len
+  uint64_t tags_query_len,
+  uint64_t locals_query_len
 );
 
 // Compute syntax highlighting for a given document. You must first
@@ -65,7 +65,7 @@ TSTagsError ts_tagger_tag(
   const TSTagger *self,
   const char *scope_name,
   const char *source_code,
-  uint32_t source_code_len,
+  uint64_t source_code_len,
   TSTagsBuffer *output,
   const size_t *cancellation_flag
 );
@@ -79,14 +79,14 @@ void ts_tags_buffer_delete(TSTagsBuffer *);
 
 // Access the tags within a tag buffer.
 const TSTag *ts_tags_buffer_tags(const TSTagsBuffer *);
-uint32_t ts_tags_buffer_tags_len(const TSTagsBuffer *);
+uint64_t ts_tags_buffer_tags_len(const TSTagsBuffer *);
 
 // Access the string containing all of the docs
 const char *ts_tags_buffer_docs(const TSTagsBuffer *);
-uint32_t ts_tags_buffer_docs_len(const TSTagsBuffer *);
+uint64_t ts_tags_buffer_docs_len(const TSTagsBuffer *);
 
 // Get the syntax kinds for a scope.
-const char **ts_tagger_syntax_kinds_for_scope_name(const TSTagger *, const char *scope_name, uint32_t *len);
+const char **ts_tagger_syntax_kinds_for_scope_name(const TSTagger *, const char *scope_name, uint64_t *len);
 
 // Determine whether a parse error was encountered while tagging.
 bool ts_tags_buffer_found_parse_error(const TSTagsBuffer*);

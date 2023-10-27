@@ -4658,7 +4658,7 @@ fn test_query_max_start_depth() {
     struct Row {
         description: &'static str,
         pattern: &'static str,
-        depth: u32,
+        depth: u64,
         matches: &'static [(usize, &'static [(&'static str, &'static str)])],
     }
 
@@ -4826,7 +4826,7 @@ fn test_consecutive_zero_or_modifiers() {
 #[test]
 fn test_query_max_start_depth_more() {
     struct Row {
-        depth: u32,
+        depth: u64,
         matches: &'static [(usize, &'static [(&'static str, &'static str)])],
     }
 

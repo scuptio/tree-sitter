@@ -123,7 +123,7 @@ TSTree *ts_parser_parse_string(
   TSParser *self,
   const TSTree *old_tree,
   const char *string,
-  uint32_t length
+  uint64_t length
 );
 ```
 
@@ -144,9 +144,9 @@ typedef struct {
   void *payload;
   const char *(*read)(
     void *payload,
-    uint32_t byte_offset,
+    uint64_t byte_offset,
     TSPoint position,
-    uint32_t *bytes_read
+    uint64_t *bytes_read
   );
   TSInputEncoding encoding;
 } TSInput;
@@ -163,12 +163,12 @@ const char *ts_node_type(TSNode);
 Syntax nodes store their position in the source code both in terms of raw bytes and row/column coordinates:
 
 ```c
-uint32_t ts_node_start_byte(TSNode);
-uint32_t ts_node_end_byte(TSNode);
+uint64_t ts_node_start_byte(TSNode);
+uint64_t ts_node_end_byte(TSNode);
 
 typedef struct {
-  uint32_t row;
-  uint32_t column;
+  uint64_t row;
+  uint64_t column;
 } TSPoint;
 
 TSPoint ts_node_start_point(TSNode);
@@ -186,8 +186,8 @@ TSNode ts_tree_root_node(const TSTree *);
 Once you have a node, you can access the node's children:
 
 ```c
-uint32_t ts_node_child_count(TSNode);
-TSNode ts_node_child(TSNode, uint32_t);
+uint64_t ts_node_child_count(TSNode);
+TSNode ts_node_child(TSNode, uint64_t);
 ```
 
 You can also access its siblings and parent:
@@ -225,8 +225,8 @@ bool ts_node_is_named(TSNode);
 When traversing the tree, you can also choose to skip over anonymous nodes by using the `_named_` variants of all of the methods described above:
 
 ```c
-TSNode ts_node_named_child(TSNode, uint32_t);
-uint32_t ts_node_named_child_count(TSNode);
+TSNode ts_node_named_child(TSNode, uint64_t);
+uint64_t ts_node_named_child_count(TSNode);
 TSNode ts_node_next_named_sibling(TSNode);
 TSNode ts_node_prev_named_sibling(TSNode);
 ```
@@ -241,16 +241,16 @@ To make syntax nodes easier to analyze, many grammars assign unique _field names
 TSNode ts_node_child_by_field_name(
   TSNode self,
   const char *field_name,
-  uint32_t field_name_length
+  uint64_t field_name_length
 );
 ```
 
 Fields also have numeric ids that you can use, if you want to avoid repeated string comparisons. You can convert between strings and ids using the `TSLanguage`:
 
 ```c
-uint32_t ts_language_field_count(const TSLanguage *);
+uint64_t ts_language_field_count(const TSLanguage *);
 const char *ts_language_field_name_for_id(const TSLanguage *, TSFieldId);
-TSFieldId ts_language_field_id_for_name(const TSLanguage *, const char *, uint32_t);
+TSFieldId ts_language_field_id_for_name(const TSLanguage *, const char *, uint64_t);
 ```
 
 The field ids can be used in place of the name:
@@ -267,9 +267,9 @@ In applications like text editors, you often need to re-parse a file after its s
 
 ```c
 typedef struct {
-  uint32_t start_byte;
-  uint32_t old_end_byte;
-  uint32_t new_end_byte;
+  uint64_t start_byte;
+  uint64_t old_end_byte;
+  uint64_t new_end_byte;
   TSPoint start_point;
   TSPoint old_end_point;
   TSPoint new_end_point;
@@ -298,14 +298,14 @@ Tree-sitter handles these types of documents by allowing you to create a syntax 
 typedef struct {
   TSPoint start_point;
   TSPoint end_point;
-  uint32_t start_byte;
-  uint32_t end_byte;
+  uint64_t start_byte;
+  uint64_t end_byte;
 } TSRange;
 
 void ts_parser_set_included_ranges(
   TSParser *self,
   const TSRange *ranges,
-  uint32_t range_count
+  uint64_t range_count
 );
 ```
 
@@ -759,8 +759,8 @@ Create a query by specifying a string containing one or more patterns:
 TSQuery *ts_query_new(
   const TSLanguage *language,
   const char *source,
-  uint32_t source_len,
-  uint32_t *error_offset,
+  uint64_t source_len,
+  uint64_t *error_offset,
   TSQueryError *error_type
 );
 ```
@@ -794,11 +794,11 @@ You can then iterate over the matches:
 ```c
 typedef struct {
   TSNode node;
-  uint32_t index;
+  uint64_t index;
 } TSQueryCapture;
 
 typedef struct {
-  uint32_t id;
+  uint64_t id;
   uint16_t pattern_index;
   uint16_t capture_count;
   const TSQueryCapture *captures;

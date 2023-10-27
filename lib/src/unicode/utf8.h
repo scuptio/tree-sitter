@@ -196,11 +196,11 @@ utf8_back1SafeBody(const uint8_t *s, int32_t start, int32_t i);
  * @stable ICU 2.4
  */
 #define U8_LENGTH(c) \
-    ((uint32_t)(c)<=0x7f ? 1 : \
-        ((uint32_t)(c)<=0x7ff ? 2 : \
-            ((uint32_t)(c)<=0xd7ff ? 3 : \
-                ((uint32_t)(c)<=0xdfff || (uint32_t)(c)>0x10ffff ? 0 : \
-                    ((uint32_t)(c)<=0xffff ? 3 : 4)\
+    ((uint64_t)(c)<=0x7f ? 1 : \
+        ((uint64_t)(c)<=0x7ff ? 2 : \
+            ((uint64_t)(c)<=0xd7ff ? 3 : \
+                ((uint64_t)(c)<=0xdfff || (uint64_t)(c)>0x10ffff ? 0 : \
+                    ((uint64_t)(c)<=0xffff ? 3 : 4)\
                 ) \
             ) \
         ) \
@@ -419,7 +419,7 @@ utf8_back1SafeBody(const uint8_t *s, int32_t start, int32_t i);
  * @stable ICU 2.4
  */
 #define U8_APPEND_UNSAFE(s, i, c) UPRV_BLOCK_MACRO_BEGIN { \
-    uint32_t __uc=(c); \
+    uint64_t __uc=(c); \
     if(__uc<=0x7f) { \
         (s)[(i)++]=(uint8_t)__uc; \
     } else { \
@@ -456,7 +456,7 @@ utf8_back1SafeBody(const uint8_t *s, int32_t start, int32_t i);
  * @stable ICU 2.4
  */
 #define U8_APPEND(s, i, capacity, c, isError) UPRV_BLOCK_MACRO_BEGIN { \
-    uint32_t __uc=(c); \
+    uint64_t __uc=(c); \
     if(__uc<=0x7f) { \
         (s)[(i)++]=(uint8_t)__uc; \
     } else if(__uc<=0x7ff && (i)+1<(capacity)) { \

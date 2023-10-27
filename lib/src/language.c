@@ -3,19 +3,19 @@
 #include "./error_costs.h"
 #include <string.h>
 
-uint32_t ts_language_symbol_count(const TSLanguage *self) {
+uint64_t ts_language_symbol_count(const TSLanguage *self) {
   return self->symbol_count + self->alias_count;
 }
 
-uint32_t ts_language_state_count(const TSLanguage *self) {
+uint64_t ts_language_state_count(const TSLanguage *self) {
   return self->state_count;
 }
 
-uint32_t ts_language_version(const TSLanguage *self) {
+uint64_t ts_language_version(const TSLanguage *self) {
   return self->version;
 }
 
-uint32_t ts_language_field_count(const TSLanguage *self) {
+uint64_t ts_language_field_count(const TSLanguage *self) {
   return self->field_count;
 }
 
@@ -31,7 +31,7 @@ void ts_language_table_entry(
     result->actions = NULL;
   } else {
     assert(symbol < self->token_count);
-    uint32_t action_index = ts_language_lookup(self, state, symbol);
+    uint64_t action_index = ts_language_lookup(self, state, symbol);
     const TSParseActionEntry *entry = &self->parse_actions[action_index];
     result->action_count = entry->entry.count;
     result->is_reusable = entry->entry.reusable;
@@ -68,7 +68,7 @@ TSStateId ts_language_next_state(
   if (symbol == ts_builtin_sym_error || symbol == ts_builtin_sym_error_repeat) {
     return 0;
   } else if (symbol < self->token_count) {
-    uint32_t count;
+    uint64_t count;
     const TSParseAction *actions = ts_language_actions(self, state, symbol, &count);
     if (count > 0) {
       TSParseAction action = actions[count - 1];
@@ -100,7 +100,7 @@ const char *ts_language_symbol_name(
 TSSymbol ts_language_symbol_for_name(
   const TSLanguage *self,
   const char *string,
-  uint32_t length,
+  uint64_t length,
   bool is_named
 ) {
   if (!strncmp(string, "ERROR", length)) return ts_builtin_sym_error;
@@ -134,7 +134,7 @@ const char *ts_language_field_name_for_id(
   const TSLanguage *self,
   TSFieldId id
 ) {
-  uint32_t count = ts_language_field_count(self);
+  uint64_t count = ts_language_field_count(self);
   if (count && id <= count) {
     return self->field_names[id];
   } else {
@@ -145,7 +145,7 @@ const char *ts_language_field_name_for_id(
 TSFieldId ts_language_field_id_for_name(
   const TSLanguage *self,
   const char *name,
-  uint32_t name_length
+  uint64_t name_length
 ) {
   uint16_t count = (uint16_t)ts_language_field_count(self);
   for (TSSymbol i = 1; i < count + 1; i++) {

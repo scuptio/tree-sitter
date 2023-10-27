@@ -42,7 +42,7 @@ pub enum ErrorCode {
 pub unsafe extern "C" fn ts_highlighter_new(
     highlight_names: *const *const c_char,
     attribute_strings: *const *const c_char,
-    highlight_count: u32,
+    highlight_count: u64,
 ) -> *mut TSHighlighter {
     let highlight_names = slice::from_raw_parts(highlight_names, highlight_count as usize);
     let attribute_strings = slice::from_raw_parts(attribute_strings, highlight_count as usize);
@@ -84,9 +84,9 @@ pub unsafe extern "C" fn ts_highlighter_add_language(
     highlight_query: *const c_char,
     injection_query: *const c_char,
     locals_query: *const c_char,
-    highlight_query_len: u32,
-    injection_query_len: u32,
-    locals_query_len: u32,
+    highlight_query_len: u64,
+    injection_query_len: u64,
+    locals_query_len: u64,
     apply_all_captures: bool,
 ) -> ErrorCode {
     let f = move || {
@@ -207,14 +207,14 @@ pub unsafe extern "C" fn ts_highlight_buffer_content(this: *const TSHighlightBuf
 /// `this` must be non-null and must be a valid pointer to a [`TSHighlightBuffer`] instance
 /// created by [`ts_highlight_buffer_new`].
 ///
-/// The returned pointer, a C-style array of [`u32`]s, must not outlive the [`TSHighlightBuffer`] instance, else the
+/// The returned pointer, a C-style array of [`u64`]s, must not outlive the [`TSHighlightBuffer`] instance, else the
 /// data will point to garbage.
 ///
 /// To get the length of the array, use [`ts_highlight_buffer_line_count`].
 #[no_mangle]
 pub unsafe extern "C" fn ts_highlight_buffer_line_offsets(
     this: *const TSHighlightBuffer,
-) -> *const u32 {
+) -> *const u64 {
     let this = unwrap_ptr(this);
     this.renderer.line_offsets.as_slice().as_ptr()
 }
@@ -226,9 +226,9 @@ pub unsafe extern "C" fn ts_highlight_buffer_line_offsets(
 /// `this` must be non-null and must be a valid pointer to a [`TSHighlightBuffer`] instance
 /// created by [`ts_highlight_buffer_new`].
 #[no_mangle]
-pub unsafe extern "C" fn ts_highlight_buffer_len(this: *const TSHighlightBuffer) -> u32 {
+pub unsafe extern "C" fn ts_highlight_buffer_len(this: *const TSHighlightBuffer) -> u64 {
     let this = unwrap_ptr(this);
-    this.renderer.html.len() as u32
+    this.renderer.html.len() as u64
 }
 
 /// Get the number of lines in a [`TSHighlightBuffer`] instance.
@@ -238,9 +238,9 @@ pub unsafe extern "C" fn ts_highlight_buffer_len(this: *const TSHighlightBuffer)
 /// `this` must be non-null and must be a valid pointer to a [`TSHighlightBuffer`] instance
 /// created by [`ts_highlight_buffer_new`].
 #[no_mangle]
-pub unsafe extern "C" fn ts_highlight_buffer_line_count(this: *const TSHighlightBuffer) -> u32 {
+pub unsafe extern "C" fn ts_highlight_buffer_line_count(this: *const TSHighlightBuffer) -> u64 {
     let this = unwrap_ptr(this);
-    this.renderer.line_offsets.len() as u32
+    this.renderer.line_offsets.len() as u64
 }
 
 /// Highlight a string of source code.
@@ -256,7 +256,7 @@ pub unsafe extern "C" fn ts_highlighter_highlight(
     this: *const TSHighlighter,
     scope_name: *const c_char,
     source_code: *const c_char,
-    source_code_len: u32,
+    source_code_len: u64,
     output: *mut TSHighlightBuffer,
     cancellation_flag: *const AtomicUsize,
 ) -> ErrorCode {

@@ -29,11 +29,11 @@ static const TSRange DEFAULT_RANGE = {
     .column = 0,
   },
   .end_point = {
-    .row = UINT32_MAX,
-    .column = UINT32_MAX,
+    .row = UINT64_MAX,
+    .column = UINT64_MAX,
   },
   .start_byte = 0,
-  .end_byte = UINT32_MAX
+  .end_byte = UINT64_MAX
 };
 
 // Check if the lexer has reached EOF. This state is stored
@@ -72,8 +72,8 @@ static void ts_lexer__get_chunk(Lexer *self) {
 // This assumes that the lexer has already retrieved a chunk of source
 // code that spans the current position.
 static void ts_lexer__get_lookahead(Lexer *self) {
-  uint32_t position_in_chunk = self->current_position.bytes - self->chunk_start;
-  uint32_t size = self->chunk_size - position_in_chunk;
+  uint64_t position_in_chunk = self->current_position.bytes - self->chunk_start;
+  uint64_t size = self->chunk_size - position_in_chunk;
 
   if (size == 0) {
     self->lookahead_size = 1;
@@ -245,10 +245,10 @@ static void ts_lexer__mark_end(TSLexer *_self) {
   self->token_end_position = self->current_position;
 }
 
-static uint32_t ts_lexer__get_column(TSLexer *_self) {
+static uint64_t ts_lexer__get_column(TSLexer *_self) {
   Lexer *self = (Lexer *)_self;
 
-  uint32_t goal_byte = self->current_position.bytes;
+  uint64_t goal_byte = self->current_position.bytes;
 
   self->did_get_column = true;
   self->current_position.bytes -= self->current_position.extent.column;
@@ -258,7 +258,7 @@ static uint32_t ts_lexer__get_column(TSLexer *_self) {
     ts_lexer__get_chunk(self);
   }
 
-  uint32_t result = 0;
+  uint64_t result = 0;
   if (!ts_lexer__eof(_self)) {
     ts_lexer__get_lookahead(self);
     while (self->current_position.bytes < goal_byte && self->chunk) {
@@ -346,7 +346,7 @@ void ts_lexer_start(Lexer *self) {
   }
 }
 
-void ts_lexer_finish(Lexer *self, uint32_t *lookahead_end_byte) {
+void ts_lexer_finish(Lexer *self, uint64_t *lookahead_end_byte) {
   if (length_is_undefined(self->token_end_position)) {
     ts_lexer__mark_end(&self->data);
   }
@@ -358,7 +358,7 @@ void ts_lexer_finish(Lexer *self, uint32_t *lookahead_end_byte) {
     self->token_start_position = self->token_end_position;
   }
 
-  uint32_t current_lookahead_end_byte = self->current_position.bytes + 1;
+  uint64_t current_lookahead_end_byte = self->current_position.bytes + 1;
 
   // In order to determine that a byte sequence is invalid UTF8 or UTF16,
   // the character decoding algorithm may have looked at the following byte.
@@ -386,13 +386,13 @@ void ts_lexer_mark_end(Lexer *self) {
 bool ts_lexer_set_included_ranges(
   Lexer *self,
   const TSRange *ranges,
-  uint32_t count
+  uint64_t count
 ) {
   if (count == 0 || !ranges) {
     ranges = &DEFAULT_RANGE;
     count = 1;
   } else {
-    uint32_t previous_byte = 0;
+    uint64_t previous_byte = 0;
     for (unsigned i = 0; i < count; i++) {
       const TSRange *range = &ranges[i];
       if (
@@ -411,7 +411,7 @@ bool ts_lexer_set_included_ranges(
   return true;
 }
 
-TSRange *ts_lexer_included_ranges(const Lexer *self, uint32_t *count) {
+TSRange *ts_lexer_included_ranges(const Lexer *self, uint64_t *count) {
   *count = self->included_range_count;
   return self->included_ranges;
 }
